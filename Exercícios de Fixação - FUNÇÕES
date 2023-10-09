@@ -1,0 +1,160 @@
+CREATE DATABASE tabelas;
+
+USE tabelas;
+
+CREATE TABLE nomes (
+    nome VARCHAR(50)
+);
+
+INSERT INTO nomes (nome) VALUES
+    ('Roberta'),
+    ('Roberto'),
+    ('Maria Clara'),
+    ('João');
+
+SELECT UPPER(nome) FROM nomes;
+
+SELECT nome, LENGTH(nome) AS tamanho FROM nomes;
+
+SELECT
+    CASE
+        WHEN nome LIKE '%Maria%' THEN CONCAT('Sra. ', nome)
+        ELSE CONCAT('Sr. ', nome)
+    END AS nome_formatado
+FROM nomes;
+
+CREATE TABLE produtos (
+    produto VARCHAR(50),
+    preco DECIMAL(10, 2),
+    quantidade INT
+);
+
+INSERT INTO produtos (produto, preco, quantidade) VALUES
+    ('Produto A', 19.99, 5),
+    ('Produto B', 29.99, 0),
+    ('Produto C', 9.99, -2);
+
+SELECT produto, ROUND(preco, 2) AS preco_arredondado FROM produtos;
+
+SELECT produto, ABS(quantidade) AS quantidade_absoluta FROM produtos;
+
+SELECT AVG(preco) AS media_precos FROM produtos;
+
+CREATE TABLE eventos (
+    data_evento DATE
+);
+
+INSERT INTO eventos (data_evento) VALUES
+    ('2023-10-09'),
+    ('2023-10-10'),
+    ('2023-10-15');
+
+INSERT INTO eventos (data_evento) VALUES (NOW());
+
+SELECT
+    data_evento,
+    DATEDIFF(CURRENT_DATE(), data_evento) AS dias_passados
+FROM eventos;
+
+SELECT
+    data_evento,
+    DAYNAME(data_evento) AS dia_semana
+FROM eventos;
+
+SELECT
+    produto,
+    IF(quantidade > 0, 'Em estoque', 'Fora de estoque') AS status_estoque
+FROM produtos;
+
+SELECT
+    produto,
+    CASE
+        WHEN preco < 10.00 THEN 'Barato'
+        WHEN preco >= 10.00 AND preco <= 20.00 THEN 'Médio'
+        ELSE 'Caro'
+    END AS categoria_preco
+FROM produtos;
+
+DELIMITER //
+
+CREATE FUNCTION TOTAL_VALOR(preco DECIMAL(10, 2), quantidade INT)
+RETURNS DECIMAL(10, 2)
+BEGIN
+    RETURN preco * quantidade;
+END//
+
+DELIMITER ;
+
+SELECT produto, preco, quantidade, TOTAL_VALOR(preco, quantidade) AS valor_total FROM produtos;
+
+SELECT COUNT(*) AS total_produtos FROM produtos;
+
+SELECT produto, preco FROM produtos WHERE preco = (SELECT MAX(preco) FROM produtos);
+
+SELECT produto, preco FROM produtos WHERE preco = (SELECT MIN(preco) FROM produtos);
+
+SELECT SUM(IF(quantidade > 0, preco * quantidade, 0)) AS valor_total_estoque FROM produtos;
+
+DELIMITER //
+
+CREATE FUNCTION FATORIAL(n INT)
+RETURNS INT
+BEGIN
+    DECLARE resultado INT DEFAULT 1;
+    DECLARE i INT DEFAULT 1;
+    
+    WHILE i <= n DO
+        SET resultado = resultado * i;
+        SET i = i + 1;
+    END WHILE;
+    
+    RETURN resultado;
+END//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE FUNCTION f_exponencial(base INT, expoente INT)
+RETURNS INT
+BEGIN
+    DECLARE resultado INT DEFAULT 1;
+    DECLARE i INT DEFAULT 1;
+    
+    WHILE i <= expoente DO
+        SET resultado = resultado * base;
+        SET i = i + 1;
+    END WHILE;
+    
+    RETURN resultado;
+END//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE FUNCTION PALINDROMO(palavra VARCHAR(255))
+RETURNS INT
+BEGIN
+    DECLARE len INT;
+    DECLARE i INT;
+    DECLARE metade INT;
+    
+    SET len = LENGTH(palavra);
+    SET metade = FLOOR(len / 2);
+    
+    SET i = 1;
+    
+    WHILE i <= metade DO
+        IF SUBSTRING(palavra, i, 1) != SUBSTRING(palavra, len - i + 1, 1) THEN
+            RETURN 0;
+        END IF;
+        
+        SET i = i + 1;
+    END WHILE;
+    
+    RETURN 1;
+END//
+
+DELIMITER ;
+
