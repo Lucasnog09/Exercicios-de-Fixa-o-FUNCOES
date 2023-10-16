@@ -195,3 +195,39 @@ BEGIN
 END //
 DELIMITER ;
 
+DELIMITER //
+CREATE FUNCTION media_livros_por_editora() RETURNS DECIMAL(10, 2)
+BEGIN
+    DECLARE total_livros INT;
+    DECLARE total_editoras INT;
+    DECLARE media DECIMAL(10, 2);
+
+    SELECT COUNT(*) INTO total_editoras FROM Editora;
+    
+    DECLARE done INT DEFAULT 0;
+    DECLARE cur CURSOR FOR SELECT id FROM Editora;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN cur;
+
+    editora_loop: LOOP
+        FETCH cur;
+        IF done = 1 THEN
+            LEAVE editora_loop;
+        END IF;
+        
+        SELECT COUNT(*) INTO total_livros FROM Livro WHERE id_editora = cur.id;
+        SET media = media + total_livros;
+    END LOOP;
+
+    CLOSE cur;
+    
+    IF total_editoras > 0 THEN
+        SET media = media / total_editoras;
+    ELSE
+        SET media = 0.00;
+    END IF;
+    
+    RETURN media;
+END //
+DELIMITER ;
