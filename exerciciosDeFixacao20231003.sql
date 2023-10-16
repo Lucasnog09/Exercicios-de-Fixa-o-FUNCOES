@@ -142,3 +142,30 @@ BEGIN
     RETURN total;
 END //
 DELIMITER ;
+
+
+DELIMITER //
+CREATE FUNCTION listar_livros_por_autor(primeiro_nome VARCHAR(255), ultimo_nome VARCHAR(255)) RETURNS TEXT
+BEGIN
+    DECLARE lista_livros TEXT;
+    SET lista_livros = '';
+
+    DECLARE done INT DEFAULT 0;
+    DECLARE id_autor INT;
+    DECLARE cur CURSOR FOR SELECT id FROM Autor WHERE primeiro_nome = primeiro_nome AND ultimo_nome = ultimo_nome;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN cur;
+    FETCH cur INTO id_autor;
+    
+    IF done = 0 THEN
+        SELECT GROUP_CONCAT(Livro.titulo) INTO lista_livros
+        FROM Livro_Autor
+        JOIN Livro ON Livro_Autor.id_livro = Livro.id
+        WHERE Livro_Autor.id_autor = id_autor;
+    END IF;
+
+    CLOSE cur;
+    RETURN lista_livros;
+END //
+DELIMITER ;
