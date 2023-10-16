@@ -231,3 +231,41 @@ BEGIN
     RETURN media;
 END //
 DELIMITER ;
+
+
+DELIMITER //
+CREATE FUNCTION autores_sem_livros() RETURNS TEXT
+BEGIN
+    DECLARE lista_autores TEXT;
+    SET lista_autores = '';
+
+    DECLARE done INT DEFAULT 0;
+    DECLARE id_autor INT;
+    DECLARE cur CURSOR FOR SELECT id FROM Autor;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN cur;
+    
+    autor_loop: LOOP
+        FETCH cur INTO id_autor;
+        IF done = 1 THEN
+            LEAVE autor_loop;
+        END IF;
+        
+        IF (SELECT COUNT(*) FROM Livro_Autor WHERE id_autor = id_autor) = 0 THEN
+            SELECT CONCAT(primeiro_nome, ' ', ultimo_nome) INTO lista_autores
+            FROM Autor
+            WHERE id = id_autor;
+            SET lista_autores = CONCAT(lista_autores, ', ');
+        END IF;
+    END LOOP;
+
+    CLOSE cur;
+    
+    IF lista_autores != '' THEN
+        SET lista_autores = SUBSTRING(lista_autores, 1, LENGTH(lista_autores) - 2);
+    END IF;
+    
+    RETURN lista_autores;
+END //
+DELIMITER ;
